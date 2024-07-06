@@ -1,28 +1,16 @@
-FROM ubuntu
+FROM node:22
 
-# Set timezone and environment variables
-ENV TZ=America/New_York
-ENV PATH=$PATH:/usr/bin/node
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# Node v20.15.0 has NODE_MODULE_VERSION 115 which is supported (Arm64) by uWebSockets.js
+# Node v22.4.0 has NODE_MODULE_VERSION 127 which is supported (Arm64) by uWebSockets.js
+
+WORKDIR /home/websocket
 
 # Add source files to docker image
-ADD .	/home/websocket
+COPY ./nodejs-uws_websocket-benchmark-server.js .
+COPY ./package.json .
 
-# Update and install dependencies
-RUN apt-get -y update \
-    && apt-get -y upgrade \
-    && apt-get -y install curl git nodejs npm
-
-# Install yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update && apt-get -y install yarn
-
-# Install node modules
-RUN cd /home/websocket \
-    && yarn install
+RUN yarn install
 
 EXPOSE 8080
 
-WORKDIR /home/websocket
 CMD ["node", "nodejs-uws_websocket-benchmark-server.js"]
